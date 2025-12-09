@@ -1,0 +1,244 @@
+---
+title: "YHR_FlowThrough_June2025"
+output: html_document
+date: "2025-12-08"
+author: "Colin G. Finlay"
+---
+
+```{r setup, include=FALSE}
+rm(list=ls())
+knitr::opts_chunk$set(echo = TRUE)
+#use to set working directory 
+knitr::opts_knit$set(root.dir="~/GitHub/FlowThrough_CoastalAg/analyses")
+```
+
+# Packages and data import
+
+```{r load packages}
+require("tidyverse")
+```
+
+```{r read in data}
+Wk1_0730_MIMS <- read.csv("../data/Wk1_730MIMS_TimeCurves.csv")
+Wk2_0731_MIMS <- read.csv("../data/Wk2_731MIMS_TimeCurves.csv")
+```
+
+# Data wrangling
+
+```{r}
+# date times:
+Wk1_0730_MIMS$Time <- as.POSIXct(Wk1_0730_MIMS$Time, format = "%m/%d/%y %H:%M")
+Wk2_0731_MIMS$Time <- as.POSIXct(Wk2_0731_MIMS$Time, format = "%m/%d/%y %H:%M")
+```
+
+```{r split core IDs off of orig.ID}
+Wk1_0730_MIMS$CoreID <- substr(Wk1_0730_MIMS$Orig.ID, 1, 3)
+Wk2_0731_MIMS$CoreID <- substr(Wk2_0731_MIMS$Orig.ID, 1, 3)
+```
+
+# Plotting
+
+## µM Ar
+
+```{r µM Ar Week 1}
+plot.uM.Ar_Wk1 <- ggplot(data = Wk1_0730_MIMS, aes(x = Time, y = uM.Ar)) +
+  facet_grid(~CoreID)+
+  geom_line(size = 1) +
+  geom_point(size = 4)+
+  #scale_color_manual(values=c("#CC79A7","#0072B2"), labels = c("Upstream", "Downstream"), name="Sample Location") +
+  #scale_shape_manual(values = c(24, 25), labels = c("Upstream", "Downstream"), name = "Sample Location")+
+  #scale_fill_manual(values = c("#CC79A7","#0072B2"), labels = c("Upstream", "Downstream"), name="Sample Location")+
+  theme_bw() +
+  #Remove plot grid lines
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  #Set axis title and text properties, tick marks, and labels
+  theme(text=element_text(size=20),axis.title=element_text(size=20,face="bold"),
+          axis.text=element_text(size=20),  
+          axis.title.y=element_text(margin=margin(r=10)),
+          axis.title.x = element_text(margin = margin(r=10)),
+          panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 20), legend.position="bottom", legend.title = element_text(size=20), legend.text=element_text(size=20)) + 
+          theme(axis.ticks.length=unit(0.3,"cm")) + 
+          labs(x = "", y = "µM Ar", title="Week 1 (June 9/July 30)") +
+  theme(rect=element_rect(fill="transparent"))+
+  theme(plot.background = element_rect(color=NA), axis.text.x = element_text(angle=45, hjust = 1))
+  #scale_x_date(date_breaks = "1 month", limits = c(range(NH3_PO4_Unknown_dropNegs$Date)), date_labels = "%b %y")
+  
+ 
+plot.uM.Ar_Wk1
+```
+
+```{r µM Ar Week 2}
+plot.uM.Ar_Wk2 <- ggplot(data = Wk2_0731_MIMS, aes(x = Time, y = uM.Ar)) +
+  facet_grid(~CoreID)+
+  geom_line(size = 1) +
+  geom_point(size = 4)+
+  #scale_color_manual(values=c("#CC79A7","#0072B2"), labels = c("Upstream", "Downstream"), name="Sample Location") +
+  #scale_shape_manual(values = c(24, 25), labels = c("Upstream", "Downstream"), name = "Sample Location")+
+  #scale_fill_manual(values = c("#CC79A7","#0072B2"), labels = c("Upstream", "Downstream"), name="Sample Location")+
+  theme_bw() +
+  #Remove plot grid lines
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  #Set axis title and text properties, tick marks, and labels
+  theme(text=element_text(size=20),axis.title=element_text(size=20,face="bold"),
+          axis.text=element_text(size=20),  
+          axis.title.y=element_text(margin=margin(r=10)),
+          axis.title.x = element_text(margin = margin(r=10)),
+          panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 20), legend.position="bottom", legend.title = element_text(size=20), legend.text=element_text(size=20)) + 
+          theme(axis.ticks.length=unit(0.3,"cm")) + 
+          labs(x = "", y = "µM Ar", title="Week 2 (June 16/July 31)") +
+  theme(rect=element_rect(fill="transparent"))+
+  theme(plot.background = element_rect(color=NA), axis.text.x = element_text(angle=45, hjust = 1))
+  #scale_x_date(date_breaks = "1 month", limits = c(range(NH3_PO4_Unknown_dropNegs$Date)), date_labels = "%b %y")
+  
+ 
+plot.uM.Ar_Wk2
+```
+
+## Ar flux
+
+```{r Ar flux Week 1}
+plot.Ar_flux_Wk1 <- ggplot(data = Wk1_0730_MIMS, aes(x = Time, y = Ar.flux..umol.Ar.m.2.hr.1.)) +
+  facet_grid(~CoreID)+
+  geom_line(size = 1) +
+  geom_point(size = 4)+
+  theme_bw() +
+  #Remove plot grid lines
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  #Set axis title and text properties, tick marks, and labels
+  theme(text=element_text(size=20),axis.title=element_text(size=20,face="bold"),
+          axis.text=element_text(size=20),  
+          axis.title.y=element_text(margin=margin(r=10)),
+          axis.title.x = element_text(margin = margin(r=10)),
+          panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 20), legend.position="bottom", legend.title = element_text(size=20), legend.text=element_text(size=20)) + 
+          theme(axis.ticks.length=unit(0.3,"cm")) + 
+          labs(x = "", y = expression(paste("µMol Ar m"^{-2}, " h"^{-1})), title="Week 1 (June 9/July 30)") +
+  theme(rect=element_rect(fill="transparent"))+
+  theme(plot.background = element_rect(color=NA), axis.text.x = element_text(angle=45, hjust = 1))
+  #scale_x_date(date_breaks = "1 month", limits = c(range(NH3_PO4_Unknown_dropNegs$Date)), date_labels = "%b %y")
+  
+ 
+plot.Ar_flux_Wk1
+```
+
+```{r Ar flux Week 2}
+plot.Ar_flux_Wk2 <- ggplot(data = Wk2_0731_MIMS, aes(x = Time, y = Ar.flux..umol.Ar.m.2.hr.1.)) +
+  facet_grid(~CoreID)+
+  geom_line(size = 1) +
+  geom_point(size = 4)+
+  theme_bw() +
+  #Remove plot grid lines
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  #Set axis title and text properties, tick marks, and labels
+  theme(text=element_text(size=20),axis.title=element_text(size=20,face="bold"),
+          axis.text=element_text(size=20),  
+          axis.title.y=element_text(margin=margin(r=10)),
+          axis.title.x = element_text(margin = margin(r=10)),
+          panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 20), legend.position="bottom", legend.title = element_text(size=20), legend.text=element_text(size=20)) + 
+          theme(axis.ticks.length=unit(0.3,"cm")) + 
+          labs(x = "", y = expression(paste("µMol Ar m"^{-2}, " h"^{-1})), title="Week 2 (June 16/July 31)") +
+  theme(rect=element_rect(fill="transparent"))+
+  theme(plot.background = element_rect(color=NA), axis.text.x = element_text(angle=45, hjust = 1))
+  
+ 
+plot.Ar_flux_Wk2
+```
+
+## N2 flux
+
+```{r N2 flux Week 1}
+plot.N2_flux_Wk1 <- ggplot(data = Wk1_0730_MIMS, aes(x = Time, y = N2.flux..umol.N.m.2.hr.1.)) +
+  facet_grid(~CoreID)+
+  geom_line(size = 1) +
+  geom_point(size = 4)+
+  theme_bw() +
+  #Remove plot grid lines
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  #Set axis title and text properties, tick marks, and labels
+  theme(text=element_text(size=20),axis.title=element_text(size=20,face="bold"),
+          axis.text=element_text(size=20),  
+          axis.title.y=element_text(margin=margin(r=10)),
+          axis.title.x = element_text(margin = margin(r=10)),
+          panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 20), legend.position="bottom", legend.title = element_text(size=20), legend.text=element_text(size=20)) + 
+          theme(axis.ticks.length=unit(0.3,"cm")) + 
+          labs(x = "", y = expression(paste("µMol N"[2], " m"^{-2}, " h"^{-1})), title="Week 1 (June 9/July 30)") +
+  theme(rect=element_rect(fill="transparent"))+
+  theme(plot.background = element_rect(color=NA), axis.text.x = element_text(angle=45, hjust = 1))
+  #scale_x_date(date_breaks = "1 month", limits = c(range(NH3_PO4_Unknown_dropNegs$Date)), date_labels = "%b %y")
+  
+ 
+plot.N2_flux_Wk1
+```
+
+```{r N2 flux Week 2}
+plot.N2_flux_Wk2 <- ggplot(data = Wk2_0731_MIMS, aes(x = Time, y = N2.flux..umol.N.m.2.hr.1.)) +
+  facet_grid(~CoreID)+
+  geom_line(size = 1) +
+  geom_point(size = 4)+
+  theme_bw() +
+  #Remove plot grid lines
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  #Set axis title and text properties, tick marks, and labels
+  theme(text=element_text(size=20),axis.title=element_text(size=20,face="bold"),
+          axis.text=element_text(size=20),  
+          axis.title.y=element_text(margin=margin(r=10)),
+          axis.title.x = element_text(margin = margin(r=10)),
+          panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 20), legend.position="bottom", legend.title = element_text(size=20), legend.text=element_text(size=20)) + 
+          theme(axis.ticks.length=unit(0.3,"cm")) + 
+          labs(x = "", y = expression(paste("µMol N"[2], " m"^{-2}, " h"^{-1})), title="Week 2 (June 16/July 31)") +
+  theme(rect=element_rect(fill="transparent"))+
+  theme(plot.background = element_rect(color=NA), axis.text.x = element_text(angle=45, hjust = 1))
+  #scale_x_date(date_breaks = "1 month", limits = c(range(NH3_PO4_Unknown_dropNegs$Date)), date_labels = "%b %y")
+  
+ 
+plot.N2_flux_Wk2
+```
+
+## O2 flux
+
+```{r O2 flux Week 1}
+plot.O2_flux_Wk1 <- ggplot(data = Wk1_0730_MIMS, aes(x = Time, y = O2.flux..umol.O2.m.2.hr.1.)) +
+  facet_grid(~CoreID)+
+  geom_line(size = 1) +
+  geom_point(size = 4)+
+  theme_bw() +
+  #Remove plot grid lines
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  #Set axis title and text properties, tick marks, and labels
+  theme(text=element_text(size=20),axis.title=element_text(size=20,face="bold"),
+          axis.text=element_text(size=20),  
+          axis.title.y=element_text(margin=margin(r=10)),
+          axis.title.x = element_text(margin = margin(r=10)),
+          panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 20), legend.position="bottom", legend.title = element_text(size=20), legend.text=element_text(size=20)) + 
+          theme(axis.ticks.length=unit(0.3,"cm")) + 
+          labs(x = "", y = expression(paste("µMol O"[2], " m"^{-2}, " h"^{-1})), title="Week 1 (June 9/July 30)") +
+  theme(rect=element_rect(fill="transparent"))+
+  theme(plot.background = element_rect(color=NA), axis.text.x = element_text(angle=45, hjust = 1))
+  
+ 
+plot.O2_flux_Wk1
+```
+
+```{r O2 flux Week 2}
+plot.O2_flux_Wk2 <- ggplot(data = Wk2_0731_MIMS, aes(x = Time, y = O2.flux..umol.O2.m.2.hr.1.)) +
+  facet_grid(~CoreID)+
+  geom_line(size = 1) +
+  geom_point(size = 4)+
+  theme_bw() +
+  #Remove plot grid lines
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  #Set axis title and text properties, tick marks, and labels
+  theme(text=element_text(size=20),axis.title=element_text(size=20,face="bold"),
+          axis.text=element_text(size=20),  
+          axis.title.y=element_text(margin=margin(r=10)),
+          axis.title.x = element_text(margin = margin(r=10)),
+          panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 20), legend.position="bottom", legend.title = element_text(size=20), legend.text=element_text(size=20)) + 
+          theme(axis.ticks.length=unit(0.3,"cm")) + 
+          labs(x = "", y = expression(paste("µMol O"[2], " m"^{-2}, " h"^{-1})), title="Week 2 (June 16/July 31)") +
+  theme(rect=element_rect(fill="transparent"))+
+  theme(plot.background = element_rect(color=NA), axis.text.x = element_text(angle=45, hjust = 1))
+  
+ 
+plot.O2_flux_Wk2
+```
+
+
