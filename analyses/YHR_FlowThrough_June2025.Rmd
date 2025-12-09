@@ -16,6 +16,7 @@ knitr::opts_knit$set(root.dir="~/GitHub/FlowThrough_CoastalAg/analyses")
 
 ```{r load packages}
 require("tidyverse")
+require("ggpubr")
 ```
 
 ```{r read in data}
@@ -45,9 +46,6 @@ plot.uM.Ar_Wk1 <- ggplot(data = Wk1_0730_MIMS, aes(x = Time, y = uM.Ar)) +
   facet_grid(~CoreID)+
   geom_line(size = 1) +
   geom_point(size = 4)+
-  #scale_color_manual(values=c("#CC79A7","#0072B2"), labels = c("Upstream", "Downstream"), name="Sample Location") +
-  #scale_shape_manual(values = c(24, 25), labels = c("Upstream", "Downstream"), name = "Sample Location")+
-  #scale_fill_manual(values = c("#CC79A7","#0072B2"), labels = c("Upstream", "Downstream"), name="Sample Location")+
   theme_bw() +
   #Remove plot grid lines
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
@@ -58,10 +56,10 @@ plot.uM.Ar_Wk1 <- ggplot(data = Wk1_0730_MIMS, aes(x = Time, y = uM.Ar)) +
           axis.title.x = element_text(margin = margin(r=10)),
           panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 20), legend.position="bottom", legend.title = element_text(size=20), legend.text=element_text(size=20)) + 
           theme(axis.ticks.length=unit(0.3,"cm")) + 
-          labs(x = "", y = "µM Ar", title="Week 1 (June 9/July 30)") +
+          labs(x = "", y = expression(paste("µM Ar")), title="Week 1 (June 9th, 2025)") +
   theme(rect=element_rect(fill="transparent"))+
-  theme(plot.background = element_rect(color=NA), axis.text.x = element_text(angle=45, hjust = 1))
-  #scale_x_date(date_breaks = "1 month", limits = c(range(NH3_PO4_Unknown_dropNegs$Date)), date_labels = "%b %y")
+  theme(plot.background = element_rect(color=NA), axis.text.x = element_blank())+
+  scale_x_datetime(breaks = "6 hours", limits = as.POSIXct(c("2025-06-11 15:00:00", "2025-06-12 15:00:00"), tz = "America/New_York"), date_labels = "%m/%d %H:%M")
   
  
 plot.uM.Ar_Wk1
@@ -72,9 +70,6 @@ plot.uM.Ar_Wk2 <- ggplot(data = Wk2_0731_MIMS, aes(x = Time, y = uM.Ar)) +
   facet_grid(~CoreID)+
   geom_line(size = 1) +
   geom_point(size = 4)+
-  #scale_color_manual(values=c("#CC79A7","#0072B2"), labels = c("Upstream", "Downstream"), name="Sample Location") +
-  #scale_shape_manual(values = c(24, 25), labels = c("Upstream", "Downstream"), name = "Sample Location")+
-  #scale_fill_manual(values = c("#CC79A7","#0072B2"), labels = c("Upstream", "Downstream"), name="Sample Location")+
   theme_bw() +
   #Remove plot grid lines
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
@@ -85,10 +80,10 @@ plot.uM.Ar_Wk2 <- ggplot(data = Wk2_0731_MIMS, aes(x = Time, y = uM.Ar)) +
           axis.title.x = element_text(margin = margin(r=10)),
           panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 20), legend.position="bottom", legend.title = element_text(size=20), legend.text=element_text(size=20)) + 
           theme(axis.ticks.length=unit(0.3,"cm")) + 
-          labs(x = "", y = "µM Ar", title="Week 2 (June 16/July 31)") +
+          labs(x = "", y = expression(paste("µM Ar")), title="Week 2 (June 16th, 2025)") +
   theme(rect=element_rect(fill="transparent"))+
-  theme(plot.background = element_rect(color=NA), axis.text.x = element_text(angle=45, hjust = 1))
-  #scale_x_date(date_breaks = "1 month", limits = c(range(NH3_PO4_Unknown_dropNegs$Date)), date_labels = "%b %y")
+  theme(plot.background = element_rect(color=NA), axis.text.x = element_blank())+
+  scale_x_datetime(breaks = "6 hours", limits = as.POSIXct(c("2025-06-18 13:00:00", "2025-06-19 13:00:00"), tz = "America/New_York"), date_labels = "%m/%d %H:%M")
   
  
 plot.uM.Ar_Wk2
@@ -111,10 +106,10 @@ plot.Ar_flux_Wk1 <- ggplot(data = Wk1_0730_MIMS, aes(x = Time, y = Ar.flux..umol
           axis.title.x = element_text(margin = margin(r=10)),
           panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 20), legend.position="bottom", legend.title = element_text(size=20), legend.text=element_text(size=20)) + 
           theme(axis.ticks.length=unit(0.3,"cm")) + 
-          labs(x = "", y = expression(paste("µMol Ar m"^{-2}, " h"^{-1})), title="Week 1 (June 9/July 30)") +
+          labs(x = "", y = expression(paste("µMol Ar m"^{-2}, " h"^{-1})), title="") +
   theme(rect=element_rect(fill="transparent"))+
-  theme(plot.background = element_rect(color=NA), axis.text.x = element_text(angle=45, hjust = 1))
-  #scale_x_date(date_breaks = "1 month", limits = c(range(NH3_PO4_Unknown_dropNegs$Date)), date_labels = "%b %y")
+  theme(plot.background = element_rect(color=NA), axis.text.x = element_blank())+
+  scale_x_datetime(breaks = "6 hours", limits = as.POSIXct(c("2025-06-11 15:00:00", "2025-06-12 15:00:00"), tz = "America/New_York"), date_labels = "%m/%d %H:%M")
   
  
 plot.Ar_flux_Wk1
@@ -135,9 +130,9 @@ plot.Ar_flux_Wk2 <- ggplot(data = Wk2_0731_MIMS, aes(x = Time, y = Ar.flux..umol
           axis.title.x = element_text(margin = margin(r=10)),
           panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 20), legend.position="bottom", legend.title = element_text(size=20), legend.text=element_text(size=20)) + 
           theme(axis.ticks.length=unit(0.3,"cm")) + 
-          labs(x = "", y = expression(paste("µMol Ar m"^{-2}, " h"^{-1})), title="Week 2 (June 16/July 31)") +
-  theme(rect=element_rect(fill="transparent"))+
-  theme(plot.background = element_rect(color=NA), axis.text.x = element_text(angle=45, hjust = 1))
+          labs(x = "", y = expression(paste("µMol Ar m"^{-2}, " h"^{-1})), title="") +
+  theme(plot.background = element_rect(color=NA), axis.text.x = element_blank())+
+  scale_x_datetime(breaks = "6 hours", limits = as.POSIXct(c("2025-06-18 13:00:00", "2025-06-19 13:00:00"), tz = "America/New_York"), date_labels = "%m/%d %H:%M")
   
  
 plot.Ar_flux_Wk2
@@ -160,10 +155,10 @@ plot.N2_flux_Wk1 <- ggplot(data = Wk1_0730_MIMS, aes(x = Time, y = N2.flux..umol
           axis.title.x = element_text(margin = margin(r=10)),
           panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 20), legend.position="bottom", legend.title = element_text(size=20), legend.text=element_text(size=20)) + 
           theme(axis.ticks.length=unit(0.3,"cm")) + 
-          labs(x = "", y = expression(paste("µMol N"[2], " m"^{-2}, " h"^{-1})), title="Week 1 (June 9/July 30)") +
+          labs(x = "", y = expression(paste("µMol N"[2], " m"^{-2}, " h"^{-1})), title="") +
   theme(rect=element_rect(fill="transparent"))+
-  theme(plot.background = element_rect(color=NA), axis.text.x = element_text(angle=45, hjust = 1))
-  #scale_x_date(date_breaks = "1 month", limits = c(range(NH3_PO4_Unknown_dropNegs$Date)), date_labels = "%b %y")
+  theme(plot.background = element_rect(color=NA), axis.text.x = element_blank())+
+  scale_x_datetime(breaks = "6 hours", limits = as.POSIXct(c("2025-06-11 15:00:00", "2025-06-12 15:00:00"), tz = "America/New_York"), date_labels = "%m/%d %H:%M")
   
  
 plot.N2_flux_Wk1
@@ -184,10 +179,10 @@ plot.N2_flux_Wk2 <- ggplot(data = Wk2_0731_MIMS, aes(x = Time, y = N2.flux..umol
           axis.title.x = element_text(margin = margin(r=10)),
           panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 20), legend.position="bottom", legend.title = element_text(size=20), legend.text=element_text(size=20)) + 
           theme(axis.ticks.length=unit(0.3,"cm")) + 
-          labs(x = "", y = expression(paste("µMol N"[2], " m"^{-2}, " h"^{-1})), title="Week 2 (June 16/July 31)") +
+          labs(x = "", y = expression(paste("µMol N"[2], " m"^{-2}, " h"^{-1})), title="") +
   theme(rect=element_rect(fill="transparent"))+
-  theme(plot.background = element_rect(color=NA), axis.text.x = element_text(angle=45, hjust = 1))
-  #scale_x_date(date_breaks = "1 month", limits = c(range(NH3_PO4_Unknown_dropNegs$Date)), date_labels = "%b %y")
+  theme(plot.background = element_rect(color=NA), axis.text.x = element_blank())+
+  scale_x_datetime(breaks = "6 hours", limits = as.POSIXct(c("2025-06-18 13:00:00", "2025-06-19 13:00:00"), tz = "America/New_York"), date_labels = "%m/%d %H:%M")
   
  
 plot.N2_flux_Wk2
@@ -210,9 +205,10 @@ plot.O2_flux_Wk1 <- ggplot(data = Wk1_0730_MIMS, aes(x = Time, y = O2.flux..umol
           axis.title.x = element_text(margin = margin(r=10)),
           panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 20), legend.position="bottom", legend.title = element_text(size=20), legend.text=element_text(size=20)) + 
           theme(axis.ticks.length=unit(0.3,"cm")) + 
-          labs(x = "", y = expression(paste("µMol O"[2], " m"^{-2}, " h"^{-1})), title="Week 1 (June 9/July 30)") +
+          labs(x = "", y = expression(paste("µMol O"[2], " m"^{-2}, " h"^{-1})), title="") +
   theme(rect=element_rect(fill="transparent"))+
-  theme(plot.background = element_rect(color=NA), axis.text.x = element_text(angle=45, hjust = 1))
+  theme(plot.background = element_rect(color=NA), axis.text.x = element_text(angle=45, hjust = 1))+
+  scale_x_datetime(breaks = "6 hours", limits = as.POSIXct(c("2025-06-11 15:00:00", "2025-06-12 15:00:00"), tz = "America/New_York"), date_labels = "%m/%d %H:%M")
   
  
 plot.O2_flux_Wk1
@@ -233,12 +229,34 @@ plot.O2_flux_Wk2 <- ggplot(data = Wk2_0731_MIMS, aes(x = Time, y = O2.flux..umol
           axis.title.x = element_text(margin = margin(r=10)),
           panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 20), legend.position="bottom", legend.title = element_text(size=20), legend.text=element_text(size=20)) + 
           theme(axis.ticks.length=unit(0.3,"cm")) + 
-          labs(x = "", y = expression(paste("µMol O"[2], " m"^{-2}, " h"^{-1})), title="Week 2 (June 16/July 31)") +
+          labs(x = "", y = expression(paste("µMol O"[2], " m"^{-2}, " h"^{-1})), title="") +
   theme(rect=element_rect(fill="transparent"))+
-  theme(plot.background = element_rect(color=NA), axis.text.x = element_text(angle=45, hjust = 1))
+  theme(plot.background = element_rect(color=NA), axis.text.x = element_text(angle=45, hjust = 1))+
+  scale_x_datetime(breaks = "6 hours", limits = as.POSIXct(c("2025-06-18 13:00:00", "2025-06-19 13:00:00"), tz = "America/New_York"), date_labels = "%m/%d %H:%M")
   
  
 plot.O2_flux_Wk2
 ```
 
+## ggarrange
+
+```{r}
+# Week 1
+Wk1_fluxes_comb <- ggarrange(plotlist = c(plot.uM.Ar_Wk1, plot.Ar_flux_Wk1, plot.N2_flux_Wk1, plot.O2_flux_Wk1), ncol = 1, nrow = 4, align = "v")
+
+Wk1_fluxes_comb
+
+#ggsave("../figures/Week1_fluxes.png", plot=Wk1_fluxes_comb, device="png", scale=1, width=21, height=16, dpi=600, limitsize=TRUE, bg="white")
+
+# Week 2
+Wk2_fluxes_comb <- ggarrange(plotlist = c(plot.uM.Ar_Wk2, plot.Ar_flux_Wk2, plot.N2_flux_Wk2, plot.O2_flux_Wk2), ncol = 1, nrow = 4, align = "v")
+
+Wk2_fluxes_comb
+
+#ggsave("../figures/Week2_fluxes.png", plot=Wk2_fluxes_comb, device="png", scale=1, width=21, height=16, dpi=600, limitsize=TRUE, bg="white")
+```
+
+```{r}
+
+```
 
