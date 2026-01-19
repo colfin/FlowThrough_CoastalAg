@@ -21,16 +21,16 @@ require("ggpubr")
 
 ```{r read in data}
 # Original flux calculation, used incorrect Ar concentration calculation:
-Wk1_0730_MIMS <- read.csv("../data/Wk1_730MIMS_TimeCurves.csv")
-Wk2_0731_MIMS <- read.csv("../data/Wk2_731MIMS_TimeCurves.csv")
+Wk1_0730_MIMS_V1 <- read.csv("../data/OriginalCalc_badAr/Wk1_730MIMS_TimeCurves.csv")
+Wk2_0731_MIMS_V1 <- read.csv("../data/OriginalCalc_badAr/Wk2_731MIMS_TimeCurves.csv")
 
 # Fluxes with constant and incorrect Ar calculation:
-Wk1_0730_MIMS_V2 <- read.csv("../data/Ar_ReCalc_Dec2025/Wk1_730MIMS_TimeCurves.csv")
-Wk2_0731_MIMS_V2 <- read.csv("../data/Ar_ReCalc_Dec2025/Wk2_731MIMS_TimeCurves.csv")
+Wk1_0730_MIMS_V2 <- read.csv("../data/Ar_ReCalc_Dec2025_badAr2/Wk1_730MIMS_TimeCurves.csv")
+Wk2_0731_MIMS_V2 <- read.csv("../data/Ar_ReCalc_Dec2025_badAr2/Wk2_731MIMS_TimeCurves.csv")
 
 # Fluxes with correct Ar calculation:
-Wk1_0730_MIMS_V2 <- read.csv("../data/Calc4_Jan2026/Wk1_730MIMS_TimeCurves.csv")
-Wk2_0731_MIMS_V2 <- read.csv("../data/Calc4_Jan2026/Wk2_731MIMS_TimeCurves.csv")
+Wk1_0730_MIMS_V3 <- read.csv("../data/Calc4_Jan2026/Wk1_730MIMS_TimeCurves.csv")
+Wk2_0731_MIMS_V3 <- read.csv("../data/Calc4_Jan2026/Wk2_731MIMS_TimeCurves.csv")
 ```
 
 # Data wrangling
@@ -247,6 +247,8 @@ plot.Ar_flux_Wk2_V2 <- ggplot(data = Wk2_0731_MIMS_V2, aes(x = Time, y = Ar_flux
  
 plot.Ar_flux_Wk2_V2
 ```
+
+# Flow rate
 
 ## N2 flux
 
