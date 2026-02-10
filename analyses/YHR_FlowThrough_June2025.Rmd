@@ -331,8 +331,55 @@ Core_Averages_Wk2 <- Wk2_0731_MIMS_V3 %>%
   )
 ```
 
+```{r Add week labels, combine DFs, add site labels}
+# Week 1 (June 9th, 2025)
+Core_Averages_Wk1$Week <- "9-June-2025"
+# Week 2 (June 16th, 2025)
+Core_Averages_Wk2$Week <- "16-June-2025"
 
+# Combine data frames
+Core_Averages <- bind_rows(Core_Averages_Wk1, Core_Averages_Wk2)
 
+# Add site labels (A, B, C)
+Core_Averages <- Core_Averages %>%
+  mutate(Plot = substr(CoreID, 1, 1))
+
+# Add flood risk labels
+Core_Averages <- Core_Averages %>%
+  mutate(Flood = case_when(
+    Plot == "A" ~ "Regulatory floodway",
+    Plot == "B" ~ "1% Annual chance",
+    Plot == "C" ~ "0.2% Annual chance",
+    TRUE ~ NA_character_ # Optional: sets anything else to NA
+  ))
+```
+
+# Plotting both weeks
+
+```{r N2 flux both weeks}
+# Plotting:
+plot.N2_Wk1_Wk2 <- ggplot(Core_Averages, aes(x=Plot, y=Mean_N2_Flux)) +
+  facet_wrap(vars(as.factor(Week)), nrow = 1, ncol = 2)+
+                    geom_boxplot(aes(color=Plot), outlier.shape = NA) +
+                    geom_point(aes(color=Plot), size = 2, position = position_jitterdodge()) +
+  scale_color_manual(values=c("#997700","#6699CC","#004488"), labels = c("Dry", "Interim", "Wet"), name="Treatment")+
+  scale_shape_manual(labels = c("Dry_No Plant", "Dry_Plant", "Interim_No Plant", "Interim_Plant", "Wet_No Plant", "Wet_Plant"), values = c(0, 15, 2, 17, 1, 19), name="History_Plant")+
+  theme_bw() +
+  #Remove plot grid lines
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  #Set axis title and text properties, tick marks, and labels
+  theme(text=element_text(size=10),axis.title=element_text(size=10,face="bold"),
+          axis.text=element_text(size=10, color = "black"),
+          axis.text.x = element_text(angle = 0),panel.border = element_rect(colour = "black",size=1),strip.text = element_text(size = 10), legend.position="none", legend.title = element_text(size=10), legend.text=element_text(size=10)) + 
+          theme(axis.ticks.length=unit(0.3,"cm")) + 
+          labs(x = "Treatment", y = "IRIS percent", title="") +
+  theme(rect=element_rect(fill="transparent"))+
+  theme(plot.background = element_rect(color=NA))
+ 
+plot.IRIS_nested
+
+#ggsave("../figures/Ecosphere_pub/iris_tubes.tiff", plot=plot.IRIS_nested, device="tiff", path=NULL, scale=1, width= 18, height= 22, units = "cm", dpi=600, limitsize=TRUE, bg="white")
+```
 
 
 
