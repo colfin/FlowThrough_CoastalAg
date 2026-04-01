@@ -21,6 +21,7 @@ require("ggtext")
 require("xfun")
 require("rstatix")
 require("NSM3")
+require("multcompView")
 ```
 
 ```{r read in data}
@@ -609,13 +610,14 @@ Teros12 <- Teros12 %>%
     # 1. Convert the string to a real Date object
     real_date = mdy(Date_sampled), 
     
-    # 2. Format to "Jun 9" (trimws removes the extra space %e leaves behind)
-    Date_format = trimws(format(real_date, "%b %e")), 
+    # 2. Format to "Jun 9"
+    # gsub("\\s+", " ", ...) looks for any instances of 1 or more spaces and reduces them to exactly 1 space
+    Date_format = gsub("\\s+", " ", format(real_date, "%b %e")), 
     
     # 3. Make it a factor and automatically order it by the actual calendar date
     Date_format = fct_reorder(Date_format, real_date) 
   ) %>%
-  select(-real_date) # Drop the temporary date column
+  dplyr::select(-real_date) # Drop the temporary date column
 ```
 
 ## Teros 12 stats
@@ -723,14 +725,14 @@ Teros12$Sampling_Zone <- as.factor(Teros12$Sampling_Zone)
 ##### June 9, 2025
 
 ```{r Kruskal-Wallis}
-kruskal_Moist_Jun9 <- kruskal.test(data = Teros12, Moisture_m3_m3 ~ Sampling_Zone, subset = Date_format == "Jun  9")
+kruskal_Moist_Jun9 <- kruskal.test(data = Teros12, Moisture_m3_m3 ~ Sampling_Zone, subset = Date_format == "Jun 9")
 
 kruskal_Moist_Jun9
 ```
 
 ```{r SDCFlig}
 # Subset by date
-Teros12_Jun9 <- Teros12 %>% filter(Date_format == "Jun  9")
+Teros12_Jun9 <- subset(Teros12, Date_format == "Jun 9")
 
 # set random seed
 set.seed(42)
@@ -743,33 +745,141 @@ SDCFlig_Moist_Jun9
 
 ##### December 16, 2025
 
-```{r}
-# ANOVA with Tukey's HSD (see G. chat from 3/30/26)
+```{r ANOVA with Tukey's HSD}
+# First, subset data to only include the December 16 dates
+Teros12_Dec16 <- subset(Teros12, Date_format == "Dec 16")
+
+# Ensure Sampling_Zone is treated as a categorical factor
+Teros12_Dec16$Sampling_Zone <- as.factor(Teros12_Dec16$Sampling_Zone)
+
+# 1. Run the ANOVA
+# This tests the overall hypothesis: is there ANY difference between the zones?
+anova_model <- aov(Moisture_m3_m3 ~ Sampling_Zone, data = Teros12_Dec16)
+
+# Check the ANOVA results (look for a Pr(>F) value less than 0.05)
+summary(anova_model)
+
+# 2. Run Tukey's HSD Post-Hoc
+# If the ANOVA is significant, this tests every pair (A vs B, B vs C, A vs C)
+tukey_results <- TukeyHSD(anova_model)
+
+# View the pairwise p-values and confidence intervals
+print(tukey_results)
+```
+
+```{r Multiple comparison letters}
+# Generate the compact letter display based on the ANOVA and Tukey results
+tukey_letters <- multcompLetters4(anova_model, tukey_results)
+
+# Print the letters corresponding to your Sampling Zones
+print(tukey_letters$Sampling_Zone)
+```
+
+##### Combined multiple comparisons for plot
+
+```{r compact letter data frame}
+# Create a data frame for the significance letters
+significance_letters <- data.frame(
+  Sampling_Zone = c("A", "B", "C", "A", "B", "C"), # Replace with your exact factor levels
+  Date_format = as.factor(c("Jun 9", "Jun 9", "Jun 9", "Dec 16", "Dec 16", "Dec 16")),
+  y_pos = c(0.7, 0.7, 0.7, 0.7, 0.7, 0.7), # Adjust these values to sit just above your highest whiskers/outliers
+  Letter = c("a", "a", "b", "a", "a", "b")
+)
 ```
 
 #### Plotting
 
 ```{r Teros 12 plot: moisture}
-# Plotting:
 plot.moisture <- ggplot(Teros12, aes(x=Sampling_Zone, y=Moisture_m3_m3)) +
-  facet_wrap(vars(as.factor(Date_format)), nrow = 1, ncol = 2)+
-                    geom_boxplot(aes(color=Sampling_Zone), outlier.shape = NA) +
-                    geom_point(aes(color=Sampling_Zone), size = 2, position = position_jitterdodge()) +
-  scale_color_manual(values=c("#86a8d2","#9c509f","#a88ec0"), labels = c("A: Regulatory Floodway", "B: 1% Annual Chance", "C: 0.2% Annual Chance"), name="Flood Hazard")+
+  facet_wrap(vars(as.factor(Date_format)), nrow = 1, ncol = 2) +
+  geom_boxplot(aes(color=Sampling_Zone), outlier.shape = NA) +
+  geom_point(aes(color=Sampling_Zone), size = 2, position = position_jitterdodge()) +
+  
+  # Text layer for significance letters
+  # inherit.aes = FALSE prevents this layer from looking for 'Moisture_m3_m3' in new dataframe
+  geom_text(data = significance_letters, 
+            aes(x = Sampling_Zone, y = y_pos, label = Letter), 
+            size = 5, 
+            fontface = "bold", 
+            color = "black", 
+            inherit.aes = FALSE) +
+  
+  scale_color_manual(
+    values=c("#86a8d2","#9c509f","#a88ec0"), 
+    labels = c("A: Regulatory Floodway", "B: 1% Annual Chance", "C: 0.2% Annual Chance"), 
+    name="Flood Hazard"
+  ) +
   theme_bw() +
-  #Remove plot grid lines
+  # Remove plot grid lines
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
-  #Set axis title and text properties, tick marks, and labels
-  theme(text=element_text(size=10), axis.title=element_text(size=10,face="bold"),
-          axis.text=element_text(size=10, color = "black"),
-          axis.text.x = element_text(angle = 0),panel.border = element_rect(colour = "black",size=1),strip.text = element_text(size = 10), legend.position="right", legend.title = element_text(size=10), legend.text=element_text(size=10)) + 
-theme(axis.ticks.length = unit(0.3, "cm"), axis.title.y = element_markdown()) + 
-  labs(x = "Flood Hazard", 
-    # Use standard markdown (**) for bold and HTML (<sup>) for superscripts
-    y = "**Moisture (m<sup>3</sup> m<sup>-3</sup>)**", title = "")
- 
+  # Set axis title and text properties, tick marks, and labels
+  theme(
+    text=element_text(size=10), 
+    axis.title=element_text(size=10,face="bold"),
+    axis.text=element_text(size=10, color = "black"),
+    axis.text.x = element_blank(),
+    panel.border = element_rect(colour = "black",size=1),
+    strip.text = element_text(size = 10), 
+    legend.position="right", 
+    legend.title = element_text(size=10), 
+    legend.text=element_text(size=10)
+  ) + 
+  theme(
+    axis.ticks.length = unit(0.3, "cm"), 
+    axis.title.y = element_markdown()
+  ) + 
+  labs(
+    x = "", 
+    y = "**Moisture (m<sup>3</sup> m<sup>-3</sup>)**", 
+    title = ""
+  ) +
+  theme(
+    axis.ticks.x = element_blank()
+  )
+
 plot.moisture
 ```
+
+### Temperature
+
+#### Stats
+
+```{r Kruskal-Wallis}
+# June 9th, 2025
+kruskal_Temp_Jun9 <- kruskal.test(data = Teros12_Jun9, Temperature_degC ~ Sampling_Zone)
+
+kruskal_Temp_Jun9 # Significant
+
+# December 16th, 2025
+kruskal_Temp_Dec16 <- kruskal.test(data = Teros12_Dec16, Temperature_degC ~ Sampling_Zone)
+
+kruskal_Temp_Dec16 # Significant
+```
+
+```{r SDCFlig}
+# June 9th, 2025
+# Pairwise comparisons
+SDCFlig_Temp_Jun9 <- pSDCFlig(x = Teros12_Jun9$Temperature_degC, g = Teros12_Jun9$Sampling_Zone, method = "Monte Carlo", n.mc = 10000)
+
+SDCFlig_Temp_Jun9
+
+# December 16th, 2025
+SDCFlig_Temp_Dec16 <- pSDCFlig(x = Teros12_Dec16$Temperature_degC, g = Teros12_Dec16$Sampling_Zone, method = "Monte Carlo", n.mc = 10000)
+
+SDCFlig_Temp_Dec16
+```
+
+```{r compact letter data frame}
+# Create a data frame for the significance letters
+significance_letters_temp <- data.frame(
+  Sampling_Zone = c("A", "B", "C", "A", "B", "C"), # Replace with your exact factor levels
+  Date_format = as.factor(c("Jun 9", "Jun 9", "Jun 9", "Dec 16", "Dec 16", "Dec 16")),
+  y_pos = c(29, 29, 29, 29, 29, 29), # Adjust these values to sit just above your highest whiskers/outliers
+  Letter = c("a", "b", "b", "a", "a", "b")
+)
+```
+
+#### Plotting
 
 ```{r Teros 12 plot: Temperature}
 # Plotting:
@@ -784,14 +894,81 @@ plot.temp <- ggplot(Teros12, aes(x=Sampling_Zone, y=Temperature_degC)) +
   #Set axis title and text properties, tick marks, and labels
   theme(text=element_text(size=10), axis.title=element_text(size=10,face="bold"),
           axis.text=element_text(size=10, color = "black"),
-          axis.text.x = element_text(angle = 0),panel.border = element_rect(colour = "black",size=1),strip.text = element_text(size = 10), legend.position="right", legend.title = element_text(size=10), legend.text=element_text(size=10)) + 
+          axis.text.x = element_blank(),panel.border = element_rect(colour = "black",size=1),strip.text = element_text(size = 10), legend.position="right", legend.title = element_text(size=10), legend.text=element_text(size=10)) + 
 theme(axis.ticks.length = unit(0.3, "cm"), axis.title.y = element_markdown()) + 
-  labs(x = "Flood Hazard", 
-    # Use standard markdown (**) for bold and HTML (<sup>) for superscripts
-    y = "**Temperature (° C)**", title = "")
+  labs(x = "", y = "**Temperature (° C)**", title = "") +
+  
+    geom_text(data = significance_letters_temp, 
+            aes(x = Sampling_Zone, y = y_pos, label = Letter), 
+            size = 5, 
+            fontface = "bold", 
+            color = "black", 
+            inherit.aes = FALSE) +
+  theme(
+    axis.ticks.x = element_blank()
+  )
  
 plot.temp
 ```
+
+### Conductivity
+
+#### Stats
+
+##### June 9, 2025
+
+```{r Kruskal-Wallis}
+kruskal_Cond_Jun9 <- kruskal.test(data = Teros12_Jun9, Conductivity_mS_cm ~ Sampling_Zone)
+
+kruskal_Cond_Jun9 # Significant
+```
+
+```{r SDCFlig}
+# Pairwise comparisons
+SDCFlig_Cond_Jun9 <- pSDCFlig(x = Teros12_Jun9$Conductivity_mS_cm, g = Teros12_Jun9$Sampling_Zone, method = "Monte Carlo", n.mc = 10000)
+
+SDCFlig_Cond_Jun9
+```
+
+##### December 16, 2025
+
+```{r ANOVA with Tukey's HSD}
+# 1. Run the ANOVA
+# This tests the overall hypothesis: is there ANY difference between the zones?
+anova_cond <- aov(Conductivity_mS_cm ~ Sampling_Zone, data = Teros12_Dec16)
+
+# Check the ANOVA results (look for a Pr(>F) value less than 0.05)
+summary(anova_cond) # p < 0.05
+
+# 2. Run Tukey's HSD Post-Hoc
+# If the ANOVA is significant, this tests every pair (A vs B, B vs C, A vs C)
+tukey_cond <- TukeyHSD(anova_cond)
+
+# View the pairwise p-values and confidence intervals
+print(tukey_cond)
+```
+
+```{r Multiple comparison letters}
+# Generate the compact letter display based on the ANOVA and Tukey results
+tukey_letters_cond <- multcompLetters4(anova_cond, tukey_cond)
+
+# Print the letters corresponding to your Sampling Zones
+print(tukey_letters_cond$Sampling_Zone)
+```
+
+##### Combined multiple comparisons for plot
+
+```{r compact letter data frame}
+# Create a data frame for the significance letters
+significance_letters_cond <- data.frame(
+  Sampling_Zone = c("A", "B", "C", "A", "B", "C"),
+  Date_format = as.factor(c("Jun 9", "Jun 9", "Jun 9", "Dec 16", "Dec 16", "Dec 16")),
+  y_pos = c(0.35, 0.35, 0.35, 0.35, 0.35, 0.35), # Adjust these values to sit just above the highest whiskers/outliers
+  Letter = c("a", "a", "b", "a", "a", "b")
+)
+```
+
+#### Plotting
 
 ```{r Teros 12 plot: Conductivity}
 # Plotting:
@@ -810,10 +987,30 @@ plot.cond <- ggplot(Teros12, aes(x=Sampling_Zone, y=Conductivity_mS_cm)) +
 theme(axis.ticks.length = unit(0.3, "cm"), axis.title.y = element_markdown()) + 
   labs(x = "Flood Hazard", 
     # Use standard markdown (**) for bold and HTML (<sup>) for superscripts
-    y = "**Conductivity (mS cm<sup>-1</sup>)**", title = "")
+    y = "**Conductivity (mS cm<sup>-1</sup>)**", title = "") +
+  
+      geom_text(data = significance_letters_cond, 
+            aes(x = Sampling_Zone, y = y_pos, label = Letter), 
+            size = 5, 
+            fontface = "bold", 
+            color = "black", 
+            inherit.aes = FALSE)
  
 plot.cond
 ```
 
+### 3 panel plot
 
+```{r ggarrange Teros 12 data}
+Plot.3panel.Teros12 <- ggarrange(plot.moisture, plot.temp, plot.cond, labels = c("(a)", "(b)", "(c)"), ncol = 1, nrow = 3, legend = "right", common.legend = T, align = "hv")
+
+Plot.3panel.Teros12
+
+#ggsave("../figures/Teros12_stats.png", plot=Plot.3panel.Teros12, device="png", path=NULL, scale=1, width=18, height=22, units = "cm", dpi=600, limitsize=TRUE, bg="white")
+```
+
+
+
+Now do an artANOVA or best option for all the Teros 12 variable in a single model
+Also may want a model where June A and B Teros 12 data explains June A and B N2 and O2 fluxes (but less important right now)
 
