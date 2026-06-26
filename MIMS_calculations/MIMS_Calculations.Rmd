@@ -39,6 +39,13 @@ set of calculations.
 *  - Change data ranges (ex. 34:36, 37:72)
 *  - Change Area value
 
+- Verification
+  - Cleaning up Excel
+*    - Adjust BP rows to be removed
+  - Make sure R and Excel Data are aligned
+  - Input
+*    - Assign data_frame, excel_file, sheet_name, and data_range.
+
 
 Notes:
 - May need to change "sample" to "sample ID" (or vise versa) depending on your
@@ -57,6 +64,8 @@ knitr::opts_knit$set(root.dir="~/GitHub/FlowThrough_CoastalAg/MIMS_calculations/
 
 ```{r load packages}
 library(readxl)
+library(dplyr)
+library(tidyr)
 ```
 
 ##Hamme Solubility -----
@@ -318,7 +327,7 @@ MIMS_Data <- read_excel("~/Downloads/ECU/Research/Peralta_Lab/Coding_Project/dat
                   sheet = "Data",
                    range = "A8:L115") # <- Adjust accordingly
 
-#Depending on the name, you may need to adjust "sample" to "sample"
+#Depending on the name, you may need to adjust "sample" to "sample ID"
 
 ```
 
@@ -727,6 +736,109 @@ View(Flow_Rate_df)
 
 ```{r}
 # basically, we'll want to compare the outputs of our Excel vs. R workflow. I'm picturing a fancy coding method to compare the values and say they are equal (with YHR and MRW datasets)
-```
 
+#Creating a function
+validate_flux <- function(flux_df, 
+                          excel_file,
+                          sheet_name,
+                          data_range,
+                          tolerance = 1e-6) {
+#Tolerance because of floating-point rounding differences 
+  
+#Loading in Excel Flux Calculations
+Excel_Output <- read_excel(excel_file,
+  sheet = sheet_name,
+  range = data_range)
+
+#Cleaning up Excel
+Excel_comp <- Excel_Output %>%
+  fill(`CV(N2/Ar)`, `CV(O2/Ar)`, `CV (Ar)`) %>%
+  slice(-c(1,2,3,4),) %>% # Removing BP rows (ADJUST)
+  filter(!is.na(`N2 flux (umol N m-2 hr-1)`)) %>%
+  rename(
+    CV_N2_Ar = `CV(N2/Ar)`,
+    CV_O2_Ar = `CV(O2/Ar)`,
+    CV_Ar = `CV (Ar)`,
+    N2_flux_umol_N_m2_hr_1 = `N2 flux (umol N m-2 hr-1)`,
+    O2_flux_umol_N_m2_hr_1 = `O2 flux (umol O2 m-2 hr-1)`,
+    Ar_flux_umol_N_m2_hr_1 = `Ar flux (umol Ar m-2 hr-1)`,
+    Flow_L_hr_1 = `Flow_L_hr-1`,
+    Area_m2 = `Area_m2`  ) # <-- Renaming Rows 
+
+#Cleaning up R
+Flux_comp <- flux_df%>%
+  mutate(
+    CV_N2_Ar = as.numeric(gsub("%", "", CV_N2_Ar)),
+    CV_O2_Ar = as.numeric(gsub("%", "", CV_O2_Ar)),
+    CV_Ar = as.numeric (gsub("%", "", CV_Ar)))
+Flux_comp <- Flux_comp %>%
+  mutate(across(c(CV_N2_Ar, CV_O2_Ar, CV_Ar), ~ . /100)) # <-- Undoing our previous percentage multiplication (x100) to match Excel
+
+#Columns
+cols <- c(
+  "CV_N2_Ar",
+  "CV_O2_Ar",
+  "CV_Ar",
+  "N2_flux_umol_N_m2_hr_1",
+  "O2_flux_umol_N_m2_hr_1",
+  "Ar_flux_umol_N_m2_hr_1",
+  "Flow_L_hr_1",
+  "Area_m2"
+)
+
+
+# Note: Make sure Column structure/order Matches between R and Excel
+Excel_mat <- Excel_comp %>%
+  select(all_of(cols)) %>%
+  mutate(across(everything(), as.numeric)) %>%
+  as.matrix() 
+  
+R_mat <- Flux_comp %>%
+  select(all_of(cols)) %>%
+  mutate(across(everything(), as.numeric)) %>%
+  as.matrix()
+
+#Comparison
+comparison <- round(R_mat,2) - round(Excel_mat,2)
+
+pass_matrix <- abs(comparison) < tolerance
+
+#Putting it into a Data Frame
+validation <- data.frame(
+  Sample = Flux_comp$sample,
+  CV_N2_Ar_Pass = pass_matrix [, 1],
+  CV_O2_Ar_Pass = pass_matrix [, 2],
+  CV_Ar_Pass = pass_matrix [, 3],
+  N2_Pass = pass_matrix [, 4],
+  O2_Pass = pass_matrix [, 5],
+  Ar_Pass = pass_matrix [, 6],
+  Flow_Pass = pass_matrix [, 7],
+  Area_Pass = pass_matrix [, 8]
+)
+
+validation$Overall_Pass <- apply(validation[-1], 1, all)
+
+
+#Summary
+all_match <- all(validation$Overall_Pass)
+if (all_match) {
+  cat("Validation PASSED: All samples matched Excel within tolerance.\n")
+} else {
+  cat("Validation FAILED: Some samples differ from Excel.\n")
+}
+
+return(validation)
+}
+
+
+#Inputs
+validate_flux(
+  flux_df = Flux_Fresh,
+  excel_file = "~/Downloads/ECU/Research/Peralta_Lab/Coding_Project/data/ReOrg_Fluxes_4 - Copy.xlsx",
+  sheet_name = "May5_Fresh",
+  data_range = "X1:AE48" #CV, Flux, Flow, and Area data
+)
+
+
+```
 
