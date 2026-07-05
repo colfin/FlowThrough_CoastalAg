@@ -1,3 +1,14 @@
+---
+title: "Post-MIMS concentration and flux calculations for flow-through core experiments"
+author: "O'Conall Eller, Colin G. Finlay"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    df_print: paged
+---
+
+# Thinking about for later: where do we want to reference Hamme, other flux equation authors, and AR Smyth calculation sheet as source material?
+
 ##MIMS Flow
 What you need:
 - MIMS Data .xlsx
@@ -322,7 +333,14 @@ uM_nM_salt <- calc_umoles(14,21.16) # <- For second set of data (may not be need
   # YHR (June flow): "../data/Pitt/YHR/"
 # Colin comment: read_excel is new to me. If it works well we can stick with it. If it's clunky, we can easily switch to .csv input data and read.csv
 
-MIMS_Data <- read_excel("~/Downloads/ECU/Research/Peralta_Lab/Coding_Project/data/20260521_Finlay_MIMS_72Samples_ARScheck (copy).xlsx",
+# Previous
+#MIMS_Data <- read_excel("~/Downloads/ECU/Research/Peralta_Lab/Coding_Project/data/20260521_Finlay_MIMS_72Samples_ARScheck (copy).xlsx",
+                        
+                  #sheet = "Data",
+                   #range = "A8:L115") # <- Adjust accordingly
+
+# Updated, date file in repo, relative path
+MIMS_Data <- read_excel("../data/Hyde/MRW/20260521_Finlay_MIMS_72Samples_ARScheck.xlsx",
                         
                   sheet = "Data",
                    range = "A8:L115") # <- Adjust accordingly
@@ -609,9 +627,17 @@ You only need to run one Flow Rate code chunk. Flow Rate (Averaged) is if you ne
 
 ```{r} 
 #Flow Rate (Averaged) -----
-Flow_Rates <- read_excel("~/Downloads/ECU/Research/Peralta_Lab/Coding_Project/data/Copy_of_MRW_FlowRates_LineIDs.xlsx",
-           sheet = "June17",
-           range ="A1:U50")
+# Old file path
+#Flow_Rates <- read_excel("~/Downloads/ECU/Research/Peralta_Lab/Coding_Project/data/Copy_of_MRW_FlowRates_LineIDs.xlsx",
+          # sheet = "June17",
+          # range ="A1:U50")
+
+# Updated file path
+Flow_Rates <- read_excel("../data/Hyde/MRW/MRW_FlowRates_LineIDs.xlsx",
+           #sheet = "AprMay2026",
+           range ="AprMay2026!A1:U50")
+# NOT LOADING CORRECT SHEET. MAYBE MY FORMATTING ON SHEET AFTER VERSION WAS SHARED. CAN O'CONALL SUPPLY VERSION OF SHEET HE IS USING?
+
 Flow_Rates$Flow_rate_L_hr <- as.numeric(Flow_Rates$Flow_rate_L_hr)
 
 #Flow Rate Averages
@@ -633,7 +659,7 @@ Flow_Rates_df <- Flow_Rates_df[-c(34, 35, 36, 37, 38, 39), ] # <-- This is to ex
 
 ```{r}
 #Flow Rate (Individual) -----
-Flow_Rates <- read_excel("~/Downloads/ECU/Research/Peralta_Lab/Coding_Project/data/FlowRates_LineIDs.xlsx",
+Flow_Rates <- read_excel("~/Downloads/ECU/Research/Peralta_Lab/Coding_Project/data/FlowRates_LineIDs.xlsx", # O'CONALL, PLEASE ADD YOUR VERSION OF THIS FILE TO THE REPO AS WELL."
            sheet = "June11",
            range ="A1:T39")
 
