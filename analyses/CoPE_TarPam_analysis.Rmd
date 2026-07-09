@@ -5,26 +5,58 @@ date: "`r Sys.Date()`"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+# Setup
+
+```{r Setup}
+# Clear environment
+rm(list=ls())
+
+#use to set working directory 
+knitr::opts_knit$set(root.dir="~/GitHub/FlowThrough_CoastalAg/analyses")
 ```
 
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+```{r Load packages}
+require("tidyverse")
+require("lubridate")
 ```
 
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r Load data}
+CoPE_data <- read.csv("../data/CoPE/NewestCOPESHEETJan2022-FEB2025Updated.csv")
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+# Wrangle
+
+```{r Select two or three sites of interest}
+# Sites of interest
+CoPE_filt <- CoPE_data |> 
+  dplyr::filter(site_name %in% c("Town Commons", "Yankee Hall Rd", "Washington Bus", "Washington Waterfront"))
+```
+
+```{r wrangle and plot specific conductivity over time}
+# 1. Wrangle the data
+CoPE_clean <- CoPE_filt |>
+  mutate(
+    # mdy() reads strings in Month/Day/Year format and converts them to Date objects
+    field_date = mdy(field_date),
+    
+    # as.numeric() forces the character numbers into actual mathematical values
+    spec_cond = as.numeric(spec_cond)
+  ) |>
+  # It is good practice to drop rows where spec_cond failed to convert (e.g., if a cell said "N/A")
+  filter(!is.na(spec_cond), !is.na(field_date))
+
+# 2. Create the plot
+ggplot(data = CoPE_clean, aes(x = field_date, y = spec_cond, color = site_name)) +
+  geom_line(linewidth = 1) +
+  geom_point(size = 2) + # Adding points helps visualize exactly when measurements were taken
+  labs(
+    title = "Specific Conductance Over Time",
+    x = "Date",
+    y = "Specific Conductance",
+    color = "Site"
+  ) +
+  theme_minimal()
+```
+
+
+
