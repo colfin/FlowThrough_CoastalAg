@@ -18,10 +18,18 @@ knitr::opts_knit$set(root.dir="~/GitHub/FlowThrough_CoastalAg/analyses")
 ```{r Load packages}
 require("tidyverse")
 require("lubridate")
+require("ggtext")
+require("ggpubr")
+require("patchwork")
 ```
 
 ```{r Load data}
+# Coastlines and People sampling sites, water quality
 CoPE_data <- read.csv("../data/CoPE/NewestCOPESHEETJan2022-FEB2025Updated.csv")
+
+# Drought.gov historical U.S. Drought Monitor
+# https://www.drought.gov/historical-information?dataset=0&selectedDateUSDM=20260707&state=North-Carolina
+Drought <- read.csv("../data/Drought_gov/USDM-North-Carolina.csv")
 ```
 
 # Wrangle
@@ -32,7 +40,7 @@ CoPE_filt <- CoPE_data |>
   dplyr::filter(site_name %in% c("Town Commons", "Yankee Hall Rd", "Washington Bus", "Washington Waterfront"))
 ```
 
-```{r wrangle and plot specific conductivity over time}
+```{r wrangle specific conductivity over time}
 # 1. Wrangle the data
 CoPE_clean <- CoPE_filt |>
   mutate(
@@ -44,18 +52,316 @@ CoPE_clean <- CoPE_filt |>
   ) |>
   # It is good practice to drop rows where spec_cond failed to convert (e.g., if a cell said "N/A")
   filter(!is.na(spec_cond), !is.na(field_date))
+```
 
-# 2. Create the plot
-ggplot(data = CoPE_clean, aes(x = field_date, y = spec_cond, color = site_name)) +
+```{r Wrangle Drought.gov data}
+# 1. Determine the date range from CoPE_filt
+# We use mdy() here because CoPE_filt$field_date is "Month/Day/Year"
+cope_dates <- mdy(CoPE_filt$field_date)
+start_date <- min(cope_dates, na.rm = TRUE)
+end_date <- max(cope_dates, na.rm = TRUE)
+
+# 2. Convert and trim the Drought data
+Drought_trimmed <- Drought |>
+  mutate(
+    # Convert "YYYY-MM-DD" character strings into Date objects
+    ValidStart = ymd(ValidStart)
+  ) |>
+  # Filter to keep only the rows that fall within the CoPE date range
+  filter(ValidStart >= start_date & ValidStart <= end_date)
+```
+
+# Plot
+
+```{r Plot specific conductance over time}
+plot.sc <- ggplot(data = CoPE_clean, aes(x = field_date, y = spec_cond, color = site_name)) +
   geom_line(linewidth = 1) +
-  geom_point(size = 2) + # Adding points helps visualize exactly when measurements were taken
+  geom_point(size = 2) + 
+  scale_color_manual(
+    values = c(
+      "Town Commons"          = "#E69F00", # Orange
+      "Yankee Hall Rd"        = "#56B4E9", # Sky Blue
+      "Washington Bus"        = "#009E73", # Bluish Green
+      "Washington Waterfront" = "#CC79A7"  # Reddish Purple
+    ),
+    labels = c(
+      "Town Commons"          = "Town Commons",
+      "Yankee Hall Rd"        = "Yankee Hall Rd",
+      "Washington Bus"        = "Washington Bus. 17 Bridge", 
+      "Washington Waterfront" = "Washington Waterfront"
+    )
+  ) +
   labs(
-    title = "Specific Conductance Over Time",
-    x = "Date",
-    y = "Specific Conductance",
+    x = "",
+    y = "Specific Conductance (&mu;S&nbsp;cm<sup>-1</sup>)",
     color = "Site"
   ) +
-  theme_minimal()
+  theme_minimal() +
+  theme(
+    axis.title.y = element_markdown(),
+    panel.grid = element_blank(),
+    axis.line = element_line(color = "black") 
+  )
+
+# View the plot
+plot.sc
+```
+
+```{r Plot Ammonia over time}
+plot.NH4 <- ggplot(data = CoPE_clean, aes(x = field_date, y = Ammonia..mg.L., color = site_name)) +
+  geom_line(linewidth = 1) +
+  geom_point(size = 2) + 
+  scale_color_manual(
+    values = c(
+      "Town Commons"          = "#E69F00", # Orange
+      "Yankee Hall Rd"        = "#56B4E9", # Sky Blue
+      "Washington Bus"        = "#009E73", # Bluish Green
+      "Washington Waterfront" = "#CC79A7"  # Reddish Purple
+    ),
+    labels = c(
+      "Town Commons"          = "Town Commons",
+      "Yankee Hall Rd"        = "Yankee Hall Rd",
+      "Washington Bus"        = "Washington Bus. 17 Bridge", 
+      "Washington Waterfront" = "Washington Waterfront"
+    )
+  ) +
+  labs(
+    x = "",
+    y = "Ammonia (mg L<sup>-1</sup>)",
+    color = "Site"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.title.y = element_markdown(),
+    panel.grid = element_blank(),
+    axis.line = element_line(color = "black") 
+  )
+
+# View the plot
+plot.NH4
+```
+
+```{r Plot phosphate over time}
+plot.PO4 <- ggplot(data = CoPE_clean, aes(x = field_date, y = Phosphate..mg.L., color = site_name)) +
+  geom_line(linewidth = 1) +
+  geom_point(size = 2) + 
+  scale_color_manual(
+    values = c(
+      "Town Commons"          = "#E69F00", # Orange
+      "Yankee Hall Rd"        = "#56B4E9", # Sky Blue
+      "Washington Bus"        = "#009E73", # Bluish Green
+      "Washington Waterfront" = "#CC79A7"  # Reddish Purple
+    ),
+    labels = c(
+      "Town Commons"          = "Town Commons",
+      "Yankee Hall Rd"        = "Yankee Hall Rd",
+      "Washington Bus"        = "Washington Bus. 17 Bridge", 
+      "Washington Waterfront" = "Washington Waterfront"
+    )
+  ) +
+  labs(
+    x = "",
+    y = "Phosphate (mg L<sup>-1</sup>)",
+    color = "Site"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.title.y = element_markdown(),
+    panel.grid = element_blank(),
+    axis.line = element_line(color = "black") 
+  )
+
+# View the plot
+plot.PO4
+```
+
+```{r Plot NOx over time}
+plot.NOx <- ggplot(data = CoPE_clean, aes(x = field_date, y = Nitrate.Nitrite..mg.L., color = site_name)) +
+  geom_line(linewidth = 1) +
+  geom_point(size = 2) + 
+  scale_color_manual(
+    values = c(
+      "Town Commons"          = "#E69F00", # Orange
+      "Yankee Hall Rd"        = "#56B4E9", # Sky Blue
+      "Washington Bus"        = "#009E73", # Bluish Green
+      "Washington Waterfront" = "#CC79A7"  # Reddish Purple
+    ),
+    labels = c(
+      "Town Commons"          = "Town Commons",
+      "Yankee Hall Rd"        = "Yankee Hall Rd",
+      "Washington Bus"        = "Washington Bus. 17 Bridge", 
+      "Washington Waterfront" = "Washington Waterfront"
+    )
+  ) +
+  labs(
+    x = "",
+    y = "Nitrate+Nitrite (mg L<sup>-1</sup>)",
+    color = "Site"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.title.y = element_markdown(),
+    panel.grid = element_blank(),
+    axis.line = element_line(color = "black") 
+  )
+
+# View the plot
+plot.NOx
+```
+
+```{r Plot TDKN over time}
+plot.TDKN <- ggplot(data = CoPE_clean, aes(x = field_date, y = Total.Dissolved.Kjeldahl.Nitrogen..mg.L., color = site_name)) +
+  geom_line(linewidth = 1) +
+  geom_point(size = 2) + 
+  scale_color_manual(
+    values = c(
+      "Town Commons"          = "#E69F00", # Orange
+      "Yankee Hall Rd"        = "#56B4E9", # Sky Blue
+      "Washington Bus"        = "#009E73", # Bluish Green
+      "Washington Waterfront" = "#CC79A7"  # Reddish Purple
+    ),
+    labels = c(
+      "Town Commons"          = "Town Commons",
+      "Yankee Hall Rd"        = "Yankee Hall Rd",
+      "Washington Bus"        = "Washington Bus. 17 Bridge", 
+      "Washington Waterfront" = "Washington Waterfront"
+    )
+  ) +
+  labs(
+    x = "",
+    y = "Total Dissolved Kjeldahl N (mg L<sup>-1</sup>)",
+    color = "Site"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.title.y = element_markdown(),
+    panel.grid = element_blank(),
+    axis.line = element_line(color = "black") 
+  )
+
+# View the plot
+plot.TDKN
+```
+
+```{r Plot TDKP over time}
+plot.TDKP <- ggplot(data = CoPE_clean, aes(x = field_date, y = Total.Dissolved.Kjeldahl.Phosphorus..mg.L., color = site_name)) +
+  geom_line(linewidth = 1) +
+  geom_point(size = 2) + 
+  scale_color_manual(
+    values = c(
+      "Town Commons"          = "#E69F00", # Orange
+      "Yankee Hall Rd"        = "#56B4E9", # Sky Blue
+      "Washington Bus"        = "#009E73", # Bluish Green
+      "Washington Waterfront" = "#CC79A7"  # Reddish Purple
+    ),
+    labels = c(
+      "Town Commons"          = "Town Commons",
+      "Yankee Hall Rd"        = "Yankee Hall Rd",
+      "Washington Bus"        = "Washington Bus. 17 Bridge", 
+      "Washington Waterfront" = "Washington Waterfront"
+    )
+  ) +
+  labs(
+    x = "",
+    y = "Total Dissolved Kjeldahl P (mg L<sup>-1</sup>)",
+    color = "Site"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.title.y = element_markdown(),
+    panel.grid = element_blank(),
+    axis.line = element_line(color = "black") 
+  )
+
+# View the plot
+plot.TDKP
+```
+
+```{r Drought plot}
+# 1. Reshape the data for ggplot2
+Drought_long <- Drought_trimmed |>
+  # pivot_longer moves the D0-D4 columns into two columns: Category and Percent
+  pivot_longer(
+    cols = c(D0, D1, D2, D3, D4),
+    names_to = "Drought_Category",
+    values_to = "Percent_Area"
+  ) |>
+  # Turn the category into a factor and set the levels. 
+  # This tells ggplot2 the exact order to draw the layers (D0 first, D4 last).
+  mutate(
+    Drought_Category = factor(Drought_Category, levels = c("D0", "D1", "D2", "D3", "D4"))
+  )
+
+# 2. Create the overlapping area plot
+plot.drought <- ggplot(data = Drought_long, aes(x = ValidStart, y = Percent_Area, fill = Drought_Category)) +
+  # position = "identity" tells ggplot NOT to stack the values, but to overlap them
+  geom_area(position = "identity") +
+  # Apply the official USDM colors and rename the legend labels
+  scale_fill_manual(
+    values = c(
+      "D0" = "#FFFF00", # Yellow
+      "D1" = "#FCD37F", # Tan
+      "D2" = "#FFAA00", # Orange
+      "D3" = "#E60000", # Red
+      "D4" = "#730000"  # Dark Red
+    ),
+    labels = c(
+      "D0" = "D0 Abnormally Dry",
+      "D1" = "D1 Moderate Drought",
+      "D2" = "D2 Severe Drought",
+      "D3" = "D3 Extreme Drought",
+      "D4" = "D4 Exceptional Drought"
+    )
+  ) +
+  # Format the y-axis to match the 0% to 100% scale in the image
+  scale_y_continuous(
+    breaks = seq(0, 100, by = 10), 
+    labels = function(x) paste0(x, "%"), 
+    expand = c(0, 0), # Removes the empty padding below 0 and above 100
+    limits = c(0, 100)
+  ) +
+  labs(
+    x = NULL, # The original image doesn't have an x-axis title
+    y = "Total Percent Land Area",
+    fill = NULL 
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "right",
+    panel.grid = element_blank(),
+    axis.line = element_line(color = "black")
+  )
+
+# View plot
+plot.drought
+```
+
+## Multi-panel plots
+
+```{r Specific conductance over drought, patchwork}
+# The / symbol means "stack vertically".
+Plot.SC_over_Drought.pw <- plot.sc / plot.drought
+
+# View the plot
+Plot.SC_over_Drought.pw
+
+#ggsave("../figures/TarPam_WQ_and_drought/SC_over_Drought.png", plot=Plot.SC_over_Drought.pw, device="png", path=NULL, scale=1, width=18.5, height=15, units = "cm", dpi=600, limitsize=TRUE, bg="white")
+```
+
+```{r N concentrations}
+Plot.N_3panel <- ggarrange(plot.NH4, plot.NOx, plot.TDKN, ncol = 1, nrow = 3, align = "hv", common.legend = TRUE, legend = "bottom")
+
+Plot.N_3panel
+
+#ggsave("../figures/TarPam_WQ_and_drought/N_3_panel.png", plot=Plot.N_3panel, device="png", path=NULL, scale=1, width=18.5, height=30, units = "cm", dpi=600, limitsize=TRUE, bg="white")
+```
+
+
+# End of Document
+
+```{r session info}
+# Reproducibility
+sessioninfo::session_info()
 ```
 
 

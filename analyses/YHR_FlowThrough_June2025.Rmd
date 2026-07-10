@@ -1169,5 +1169,11 @@ Now do an artANOVA or best option for all the Teros 12 variable in a single mode
 Also may want a model where June A and B Teros 12 data explains June A and B N2 and O2 fluxes (but less important right now)
 
 
+# End of Document
+
+```{r session info}
+# Reproducibility
+sessioninfo::session_info()
+```
 
 

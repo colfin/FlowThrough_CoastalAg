@@ -56,7 +56,12 @@ write.csv(flow_avg, "../csv_out/MRW_flow_avg.csv", row.names = FALSE)
 ```
 
 
+# End of Document
 
+```{r session info}
+# Reproducibility
+sessioninfo::session_info()
+```
 
 
 
