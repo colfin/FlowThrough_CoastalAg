@@ -35,6 +35,9 @@ MRW_MIMS_fluxes <- read.csv("../data/Hyde/MRW/MRW_fluxes_Rready_CF_20260712.csv"
 
 # Teros 12 data from June and December 2025 (coordinates removed):
 Teros12_MRW <- read.csv("../data/Hyde/MRW/CNH2_MRW_Design_and_Teros12.csv")
+
+# Gravimetric soil moisture for pre-flow samples
+Grav_moist <- read.csv("../data/Hyde/MRW/CNH2_MRW_GravMoisture.csv")
 ```
 
 # Smallest and largest water column in Salt treatment
@@ -326,9 +329,6 @@ plot.N2 <- ggplot(Core_Averages, aes(x = Treatment, y = Mean_N2_Flux, color = Tr
 
 # View plot
 plot.N2
-
-# Save plot
-#ggsave("../figures/Ecosphere_pub/iris_tubes.tiff", plot=plot.IRIS_nested, device="tiff", path=NULL, scale=1, width= 18, height= 22, units = "cm", dpi=600, limitsize=TRUE, bg="white")
 ```
 
 ```{r T test on N2 fluxes}
@@ -337,7 +337,7 @@ plot.N2_T_test <- ggplot(Core_Averages, aes(x = Treatment, y = Mean_N2_Flux, col
   geom_line(aes(group = PairID), color = "gray50", alpha = 0.5) +
   geom_point(alpha = 0.7, size = 2) +
   
-  # Added show.legend = FALSE to remove the "a"
+  # Paired T test
   stat_compare_means(method = "t.test", paired = TRUE, 
                      label = "p.format", 
                      label.x.npc = "center",
@@ -400,9 +400,6 @@ plot.O2 <- ggplot(Core_Averages, aes(x = Treatment, y = abs(Mean_O2_Flux), color
 
 # View plot
 plot.O2
-
-# Save plot
-#ggsave("../figures/Ecosphere_pub/iris_tubes.tiff", plot=plot.IRIS_nested, device="tiff", path=NULL, scale=1, width= 18, height= 22, units = "cm", dpi=600, limitsize=TRUE, bg="white")
 ```
 
 ```{r T test on O2 fluxes}
@@ -455,7 +452,41 @@ Plot.Denit_over_Resp
 ```
 
 
-# Teros 12 data
+# Teros 12 and gravimetric soil moisture data
+
+## Wrangling for ArcGIS figure
+1. Calculate gravimetric soil moisture
+2. Combine dataframes
+3. Format and read out for ArcGIS input
+
+```{r Calculate gravimetric soil moisture}
+Grav_moist <- Grav_moist %>%
+  mutate(Percent_moisture = ((Tin_plus_soil - Tin_plus_dry_soil) / 
+                             (Tin_plus_dry_soil - Tin_mass)) * 100)
+
+# These numbers are extremely high, but verified with original data sheet. I will use Teros 12 soil moisture for now.
+```
+
+```{r Export Teros 12 data for ArcGIS}
+# Filter to only pre samples
+Teros12_MRW_pre <- Teros12_MRW |>
+  dplyr::filter(Treatment == "pre")
+
+# Format the dataframe
+Teros12_MRW_pre <- Teros12_MRW_pre %>%
+  # Ensure coordinates are numeric (prevents AGOL import errors)
+  mutate(
+    Latitude = as.numeric(Latitude),
+    Longitude = as.numeric(Longitude)
+  )
+
+# 2. Export to CSV for ArcGIS Online
+# row.names = FALSE is critical so AGOL doesn't get confused by an unnamed column
+write.csv(Teros12_MRW_pre, "../csv_out/Teros12_AGOL_Import.csv", row.names = FALSE)
+```
+
+
+## previous (YHR) Teros 12 data analysis
 
 ```{r nicer date labels for plot}
 # change format to e.g., 9-Jun
