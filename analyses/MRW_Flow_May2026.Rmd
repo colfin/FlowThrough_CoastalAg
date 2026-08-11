@@ -341,6 +341,7 @@ plot.N2_T_test <- ggplot(Core_Averages, aes(x = Treatment, y = Mean_N2_Flux, col
   stat_compare_means(method = "t.test", paired = TRUE, 
                      label = "p.format", 
                      label.x.npc = "center",
+                     label.y = 400,
                      show.legend = FALSE) + 
                      
   scale_color_manual(
@@ -354,14 +355,15 @@ plot.N2_T_test <- ggplot(Core_Averages, aes(x = Treatment, y = Mean_N2_Flux, col
     panel.border = element_rect(color = "black", linewidth = 1),
     axis.title.y = element_markdown(margin = margin(r = 10)),
     axis.title.x = element_markdown(margin = margin(t = 10)),
-    axis.text = element_text(color = "black"),
+    axis.text.y = element_text(color = "black"),
+    axis.text.x = element_blank(),
     axis.ticks.length = unit(0.3, "cm"),
     strip.text = element_text(size = 10), 
-    legend.position = "right"
+    legend.position = "top"
   ) + 
   labs(
-    x = "**Water Added to Soil**",
-    y = "**µmol N<sub>2</sub>-N m<sup>-2</sup> h<sup>-1</sup>**", 
+    x = "",
+    y = "**Denitrification Rate**<br>(µmol N<sub>2</sub>-N m<sup>-2</sup> h<sup>-1</sup>)", 
     title = NULL
   )
 
@@ -412,6 +414,7 @@ plot.O2_T_test <- ggplot(Core_Averages, aes(x = Treatment, y = abs(Mean_O2_Flux)
   stat_compare_means(method = "t.test", paired = TRUE, 
                      label = "p.format", 
                      label.x.npc = "center",
+                     label.y = 2275,
                      show.legend = FALSE) + 
                      
   scale_color_manual(
@@ -428,7 +431,7 @@ plot.O2_T_test <- ggplot(Core_Averages, aes(x = Treatment, y = abs(Mean_O2_Flux)
     axis.text = element_text(color = "black"),
     axis.ticks.length = unit(0.3, "cm"),
     strip.text = element_text(size = 10), 
-    legend.position = "right"
+    legend.position = "none"
   ) + 
   labs(
     x = "**Water Added to Soil**",
@@ -449,6 +452,15 @@ Plot.Denit_over_Resp <- plot.N2 / plot.O2
 Plot.Denit_over_Resp
 
 #ggsave("../figures/Hyde/MRW/Denit_over_Resp.png", plot=Plot.Denit_over_Resp, device="png", path=NULL, scale=1, width=18.5, height=15, units = "cm", dpi=600, limitsize=TRUE, bg="white")
+
+# With T-test
+Plot.Denit_over_Resp_Ttest <- plot.N2_T_test / plot.O2_T_test
+
+# View the plot
+Plot.Denit_over_Resp_Ttest
+
+#ggsave("../figures/Hyde/MRW/Denit_over_Resp_T_test.png", plot=Plot.Denit_over_Resp_Ttest, device="png", path=NULL, scale=1, width=18.5, height=15, units = "cm", dpi=600, limitsize=TRUE, bg="white")
+
 ```
 
 
@@ -482,7 +494,7 @@ Teros12_MRW_pre <- Teros12_MRW_pre %>%
 
 # 2. Export to CSV for ArcGIS Online
 # row.names = FALSE is critical so AGOL doesn't get confused by an unnamed column
-write.csv(Teros12_MRW_pre, "../csv_out/Teros12_AGOL_Import.csv", row.names = FALSE)
+#write.csv(Teros12_MRW_pre, "../csv_out/Teros12_AGOL_Import.csv", row.names = FALSE)
 ```
 
 
