@@ -270,6 +270,31 @@ Core_Averages <- Core_Averages %>%
 # Add a PairID for visualizing paired cores
 Core_Averages <- Core_Averages %>%
   mutate(PairID = rep(1:(n() / 2), each = 2))
+
+# Add plant vs. no plant information
+# 1. Clean the Teros12_MRW dataframe to create a matching CoreID column
+Teros_clean <- Teros12_MRW |>
+  mutate(CoreID = str_remove(SampleID, "CNH2_MRW_")) |>
+  dplyr::select(CoreID, Plant_vs_no_plant) # Keep only the columns you need
+
+# 2. Join the Plant_vs_no_plant column to Core_Averages
+Core_Averages_Final <- Core_Averages %>%
+  left_join(Teros_clean, by = "CoreID")
+
+# Write Core_Averages_Final over Core_Averages
+Core_Averages <- Core_Averages_Final
+
+# Set factor and elaborate P vs. NP
+Core_Averages <- Core_Averages %>%
+  mutate(Plant_vs_no_plant = factor(Plant_vs_no_plant, 
+                                    levels = c("P", "NP"), 
+                                    labels = c("Plants", "Bare Soil")))
+
+# Create high vs. low turbidity labels for Treatment
+Core_Averages <- Core_Averages %>%
+  mutate(Treatment_turb = factor(Treatment, 
+                                    levels = c("Marsh Rd Creek", "Engelhard Boat Launch"), 
+                                    labels = c("High\n Turbidity", "Low\n Turbidity")))
 ```
 
 # Stats assumptions
@@ -332,10 +357,11 @@ plot.N2
 ```
 
 ```{r T test on N2 fluxes}
-plot.N2_T_test <- ggplot(Core_Averages, aes(x = Treatment, y = Mean_N2_Flux, color = Treatment)) +
+plot.N2_T_test <- ggplot(Core_Averages, aes(x = Treatment_turb, y = Mean_N2_Flux, color = Treatment)) +
   geom_boxplot(outlier.shape = NA) +
   geom_line(aes(group = PairID), color = "gray50", alpha = 0.5) +
-  geom_point(alpha = 0.7, size = 2) +
+  # Added shape mapping to geom_point
+  geom_point(aes(shape = Plant_vs_no_plant), alpha = 0.7, size = 2) +
   
   # Paired T test
   stat_compare_means(method = "t.test", paired = TRUE, 
@@ -345,9 +371,17 @@ plot.N2_T_test <- ggplot(Core_Averages, aes(x = Treatment, y = Mean_N2_Flux, col
                      show.legend = FALSE) + 
                      
   scale_color_manual(
-    values = c("#009E73", "#0072B2"),
-    name = "Water Added to Soil"
+    values = c("#8C510A", "#56B4E9"),
+    name = "Water Added to Soil",
+    guide = "none"
   ) +
+  
+   # Added scale_shape_manual to define filled (16) vs hollow (1)
+  scale_shape_manual(
+    values = c("Plants" = 16, "Bare Soil" = 1),
+    name = "Vegetation" 
+  ) +
+  
   theme_bw(base_size = 10) +
   theme(
     panel.grid.major = element_blank(), 
@@ -374,7 +408,7 @@ plot.N2_T_test
 
 ```{r O2 flux}
 # Plot
-plot.O2 <- ggplot(Core_Averages, aes(x = Treatment, y = abs(Mean_O2_Flux), color = Treatment)) +
+plot.O2 <- ggplot(Core_Averages, aes(x = Treatment_turb, y = abs(Mean_O2_Flux), color = Treatment)) +
   geom_boxplot(outlier.shape = NA) +
   geom_point(alpha = 0.7, size = 2, position = position_jitter(width = 0.15, height = 0)) +
   scale_color_manual(
@@ -405,10 +439,12 @@ plot.O2
 ```
 
 ```{r T test on O2 fluxes}
-plot.O2_T_test <- ggplot(Core_Averages, aes(x = Treatment, y = abs(Mean_O2_Flux), color = Treatment)) +
+plot.O2_T_test <- ggplot(Core_Averages, aes(x = Treatment_turb, y = abs(Mean_O2_Flux), color = Treatment)) +
   geom_boxplot(outlier.shape = NA) +
   geom_line(aes(group = PairID), color = "gray50", alpha = 0.5) +
-  geom_point(alpha = 0.7, size = 2) +
+  
+  # Added shape mapping to geom_point
+  geom_point(aes(shape = Plant_vs_no_plant), alpha = 0.7, size = 2) + 
   
   # Paired T test
   stat_compare_means(method = "t.test", paired = TRUE, 
@@ -418,9 +454,16 @@ plot.O2_T_test <- ggplot(Core_Averages, aes(x = Treatment, y = abs(Mean_O2_Flux)
                      show.legend = FALSE) + 
                      
   scale_color_manual(
-    values = c("#009E73", "#0072B2"),
+    values = c("#8C510A", "#56B4E9"),
     name = "Water Added to Soil"
   ) +
+  
+  # Added scale_shape_manual to define filled (16) vs hollow (1)
+  scale_shape_manual(
+    values = c("Plants" = 16, "Bare Soil" = 1),
+    name = "Vegetation" 
+  ) +
+  
   theme_bw(base_size = 10) +
   theme(
     panel.grid.major = element_blank(), 
@@ -431,7 +474,7 @@ plot.O2_T_test <- ggplot(Core_Averages, aes(x = Treatment, y = abs(Mean_O2_Flux)
     axis.text = element_text(color = "black"),
     axis.ticks.length = unit(0.3, "cm"),
     strip.text = element_text(size = 10), 
-    legend.position = "none"
+    legend.position = "none" 
   ) + 
   labs(
     x = "**Water Added to Soil**",
@@ -459,7 +502,7 @@ Plot.Denit_over_Resp_Ttest <- plot.N2_T_test / plot.O2_T_test
 # View the plot
 Plot.Denit_over_Resp_Ttest
 
-#ggsave("../figures/Hyde/MRW/Denit_over_Resp_T_test.png", plot=Plot.Denit_over_Resp_Ttest, device="png", path=NULL, scale=1, width=18.5, height=15, units = "cm", dpi=600, limitsize=TRUE, bg="white")
+#ggsave("../figures/Hyde/MRW/Denit_over_Resp_T_test.png", plot=Plot.Denit_over_Resp_Ttest, device="png", path=NULL, scale=1, width=15, height=15, units = "cm", dpi=600, limitsize=TRUE, bg="white")
 
 ```
 
