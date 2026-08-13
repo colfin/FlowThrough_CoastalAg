@@ -367,7 +367,7 @@ plot.N2_T_test <- ggplot(Core_Averages, aes(x = Treatment_turb, y = Mean_N2_Flux
   stat_compare_means(method = "t.test", paired = TRUE, 
                      label = "p.format", 
                      label.x.npc = "center",
-                     label.y = 400,
+                     label.y = 385,
                      show.legend = FALSE) + 
                      
   scale_color_manual(
@@ -382,7 +382,7 @@ plot.N2_T_test <- ggplot(Core_Averages, aes(x = Treatment_turb, y = Mean_N2_Flux
     name = "Vegetation" 
   ) +
   
-  theme_bw(base_size = 10) +
+  theme_bw(base_size = 20) +
   theme(
     panel.grid.major = element_blank(), 
     panel.grid.minor = element_blank(),
@@ -450,7 +450,7 @@ plot.O2_T_test <- ggplot(Core_Averages, aes(x = Treatment_turb, y = abs(Mean_O2_
   stat_compare_means(method = "t.test", paired = TRUE, 
                      label = "p.format", 
                      label.x.npc = "center",
-                     label.y = 2275,
+                     label.y = 2250,
                      show.legend = FALSE) + 
                      
   scale_color_manual(
@@ -464,7 +464,7 @@ plot.O2_T_test <- ggplot(Core_Averages, aes(x = Treatment_turb, y = abs(Mean_O2_
     name = "Vegetation" 
   ) +
   
-  theme_bw(base_size = 10) +
+  theme_bw(base_size = 20) +
   theme(
     panel.grid.major = element_blank(), 
     panel.grid.minor = element_blank(),
@@ -502,7 +502,7 @@ Plot.Denit_over_Resp_Ttest <- plot.N2_T_test / plot.O2_T_test
 # View the plot
 Plot.Denit_over_Resp_Ttest
 
-#ggsave("../figures/Hyde/MRW/Denit_over_Resp_T_test.png", plot=Plot.Denit_over_Resp_Ttest, device="png", path=NULL, scale=1, width=15, height=15, units = "cm", dpi=600, limitsize=TRUE, bg="white")
+#ggsave("../figures/Hyde/MRW/Denit_over_Resp_T_test.png", plot=Plot.Denit_over_Resp_Ttest, device="png", path=NULL, scale=1, width=14, height=20, units = "cm", dpi=600, limitsize=TRUE, bg="white")
 
 ```
 
